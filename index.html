@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Pacifico&family=Nunito:wght@400;700;900&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --pink: #ff3cac;
+    --purple: #784ba0;
+    --blue: #2b86c5;
+    --cyan: #00f0ff;
+    --yellow: #ffe94e;
+    --dark: #0d0d1a;
+  }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--dark);
+    overflow: hidden;
+    font-family:  'ARIEL', cursive;
+    position: relative;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: radial-gradient(ellipse at 20% 50%, rgba(120,75,160,0.3) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 20%, rgba(255,60,172,0.25) 0%, transparent 50%),
+                radial-gradient(ellipse at 60% 80%, rgba(43,134,197,0.25) 0%, transparent 50%);
+    animation: bgPulse 6s ease-in-out infinite alternate;
+    pointer-events: none;
+  }
+
+  @keyframes bgPulse {
+    0%   { opacity: 0.6; transform: scale(1); }
+    100% { opacity: 1;   transform: scale(1.05); }
+  }
+
+  .particles { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.18;
+    animation: float linear infinite;
+  }
+
+  @keyframes float {
+    0%   { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+    10%  { opacity: 0.18; }
+    90%  { opacity: 0.18; }
+    100% { transform: translateY(-10vh) rotate(720deg); opacity: 0; }
+  }
+
+  .card {
+    position: relative;
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(20px);
+    border: 1.5px solid rgba(255,255,255,0.12);
+    border-radius: 28px;
+    padding: 48px 40px 40px;
+    width: min(92vw, 420px);
+    text-align: center;
+    box-shadow: 0 0 60px rgba(255,60,172,0.15), 0 0 120px rgba(43,134,197,0.1), inset 0 1px 0 rgba(255,255,255,0.1);
+    animation: cardFloat 4s ease-in-out infinite;
+    z-index: 10;
+  }
+
+  @keyframes cardFloat {
+    0%, 100% { transform: translateY(0px); }
+    50%       { transform: translateY(-8px); }
+  }
+
+  .emoji-big {
+    font-size: clamp(56px, 12vw, 80px);
+    display: block;
+    margin-bottom: 12px;
+    animation: wiggle 2s ease-in-out infinite;
+    filter: drop-shadow(0 0 16px rgba(255,228,78,0.6));
+  }
+  @keyframes wiggle {
+    0%, 100% { transform: rotate(-5deg) scale(1); }
+    50%       { transform: rotate(5deg) scale(1.08); }
+  }
+
+  .card h1 {
+    font-family: 'ARIEL', cursive;
+    font-size: clamp(22px, 6vw, 34px);
+    background: linear-gradient(135deg, var(--pink), var(--cyan));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+    line-height: 1.2;
+  }
+
+  .card .sub {
+    color: rgba(255,255,255,0.5);
+    font-size: 13px;
+    margin-bottom: 36px;
+    font-style: italic;
+  }
+
+  /* Só o botão SIM fica no card */
+  .btns {
+    display: flex;
+    justify-content: center;
+  }
+
+  .btn-sim {
+    font-family: 'ARIEL', cursive;
+    font-weight: 900;
+    font-size: 18px;
+    padding: 14px 36px;
+    border: none;
+    border-radius: 50px;
+    background: linear-gradient(135deg, var(--pink), var(--purple));
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 6px 30px rgba(255,60,172,0.45);
+    transition: transform 0.15s, box-shadow 0.15s;
+    letter-spacing: 0.5px;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-sim::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+    border-radius: inherit;
+  }
+  .btn-sim:hover {
+    transform: scale(1.08) translateY(-2px);
+    box-shadow: 0 10px 40px rgba(255,60,172,0.6);
+  }
+  .btn-sim:active { transform: scale(0.97); }
+
+  /* Botão NÃO — sempre fixed, nunca some */
+  #btn-nao {
+    font-family: 'ARIEL', cursive;
+    font-weight: 900;
+    font-size: 16px;
+    padding: 12px 24px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50px;
+    background: rgba(255,255,255,0.07);
+    color: rgba(255,255,255,0.75);
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    z-index: 9999;
+    white-space: nowrap;
+    position: fixed;
+    /* posição inicial definida via JS após load */
+  }
+  #btn-nao:hover {
+    border-color: var(--cyan);
+    color: var(--cyan);
+  }
+
+  /* Success */
+  .success-view { display: none; flex-direction: column; align-items: center; }
+  .success-view.active { display: flex; }
+  .card h1.success-title {
+    font-size: clamp(20px, 5vw, 28px);
+    background: linear-gradient(135deg, var(--yellow), var(--pink));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-top: 12px;
+  }
+  .success-sub { color: rgba(255,255,255,0.6); font-size: 14px; margin-top: 8px; }
+  .confetti-burst { font-size: 40px; animation: popIn 0.5s cubic-bezier(0.175,0.885,0.32,1.275); }
+
+  @keyframes popIn {
+    0%   { transform: scale(0) rotate(-20deg); opacity: 0; }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  }
+
+  /* Tooltip */
+  #nao-tip {
+    position: fixed;
+    background: rgba(255,228,78,0.92);
+    color: #1a1a1a;
+    font-family: 'ARIEL', cursive;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 9998;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.3s, transform 0.3s;
+  }
+  #nao-tip.visible { opacity: 1; transform: translateY(0); }
+
+  /* Olé flash */
+  #ole-flash {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'ARIEL', cursive;
+    font-size: clamp(60px, 18vw, 120px);
+    color: var(--yellow);
+    text-shadow: 0 0 40px rgba(255,228,78,0.8);
+    pointer-events: none;
+    z-index: 99999;
+    opacity: 0;
+  }
+  #ole-flash.flash { animation: oleFlash 0.7s ease-out forwards; }
+  @keyframes oleFlash {
+    0%   { opacity: 0; transform: scale(0.5) rotate(-10deg); }
+    30%  { opacity: 1; transform: scale(1.1) rotate(3deg); }
+    70%  { opacity: 1; transform: scale(1) rotate(0deg); }
+    100% { opacity: 0; transform: scale(1.2) rotate(5deg); }
+  }
+
+  /* Teleport ring */
+  .tele-ring {
+    position: fixed;
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    border: 3px solid var(--cyan);
+    pointer-events: none;
+    z-index: 9998;
+    opacity: 0;
+  }
+  .tele-ring.pop { animation: teleRing 0.5s ease-out forwards; }
+  @keyframes teleRing {
+    0%   { opacity: 1; transform: scale(0.3); }
+    100% { opacity: 0; transform: scale(2.5); }
+  }
+
+  @keyframes fadeOut {
+    to { opacity: 0; transform: translateY(-30px); }
+  }
+</style>
+</head>
+<body>
+
+<div class="particles" id="particles"></div>
+<div id="ole-flash"></div>
+<div class="tele-ring" id="tele-ring"></div>
+<div id="nao-tip"></div>
+
+<div class="card" id="card">
+  <div id="question-view">
+    <span class="emoji-big">🌙✨</span>
+    <h1>Bora saír hoje?</h1>
+    <p class="sub">Uma noite incrível te espera...</p>
+    <div class="btns">
+      <button class="btn-sim" id="btn-sim">✅ Sim, bora!</button>
+    </div>
+  </div>
+  <div class="success-view" id="success-view">
+    <span class="confetti-burst">🎉</span>
+    <h1 class="success-title">Sabia que você topava!</h1>
+    <p class="success-sub">Que delícia, vai ser épico! 🔥🕺</p>
+  </div>
+</div>
+
+<!-- Botão NÃO fora do card, posicionado via JS -->
+<button id="btn-nao">😅 Não</button>
+
+<script>
+  // Particles
+  const pc = document.getElementById('particles');
+  const colors = ['#ff3cac','#00f0ff','#784ba0','#ffe94e','#2b86c5'];
+  for (let i = 0; i < 22; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = 6 + Math.random() * 14;
+    p.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;background:${colors[Math.floor(Math.random()*colors.length)]};animation-duration:${7+Math.random()*12}s;animation-delay:${Math.random()*10}s;`;
+    pc.appendChild(p);
+  }
+
+  const btn = document.getElementById('btn-nao');
+  const oleFlash = document.getElementById('ole-flash');
+  const teleRing = document.getElementById('tele-ring');
+  const tip = document.getElementById('nao-tip');
+
+  let dodgeCount = 0;
+  let isAnimating = false;
+  let currentX = 0;
+  let currentY = 0;
+
+  const funnyTips = [
+    "Tô vivo! 👀","Não me pega! 💨","Olé! 🐂",
+    "Haha, de nada! 😂","Teletransportando... 🌀",
+    "Escondidinho! 🙈","Tenta de novo! 😜",
+    "Velocidade da luz! ⚡","Sou rápido demais! 🏃",
+  ];
+  const olePhrases = ["OLÉ!","OLEEE!","HAHA!","😜","🏃💨","ZOOM!"];
+
+  // Posição segura — garante que o botão nunca sai da tela
+  function safePos() {
+    const margin = 16;
+    const bw = btn.offsetWidth  || 110;
+    const bh = btn.offsetHeight || 44;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const x = margin + Math.random() * (vw - bw - margin * 2);
+    const y = margin + Math.random() * (vh - bh - margin * 2);
+    return { x: Math.round(x), y: Math.round(y) };
+  }
+
+  // Posição inicial: abaixo e à direita do centro (simétrico ao SIM no card)
+  function setInitialPos() {
+    const bw = btn.offsetWidth  || 110;
+    const bh = btn.offsetHeight || 44;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    // coloca no centro inferior da tela, próximo de onde estaria no card
+    currentX = (vw / 2) + 30;
+    currentY = (vh / 2) + 60;
+    // clamp pra garantir que está na tela
+    currentX = Math.min(currentX, vw - bw - 16);
+    currentY = Math.min(currentY, vh - bh - 16);
+    btn.style.left = currentX + 'px';
+    btn.style.top  = currentY + 'px';
+  }
+
+  function clampPos(x, y) {
+    const margin = 16;
+    const bw = btn.offsetWidth  || 110;
+    const bh = btn.offsetHeight || 44;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    return {
+      x: Math.max(margin, Math.min(x, vw - bw - margin)),
+      y: Math.max(margin, Math.min(y, vh - bh - margin))
+    };
+  }
+
+  function showOle() {
+    oleFlash.textContent = olePhrases[Math.floor(Math.random() * olePhrases.length)];
+    oleFlash.classList.remove('flash');
+    void oleFlash.offsetWidth;
+    oleFlash.classList.add('flash');
+  }
+
+  function showTeleRing(x, y) {
+    const bw = btn.offsetWidth, bh = btn.offsetHeight;
+    teleRing.style.left = (x + bw/2 - 30) + 'px';
+    teleRing.style.top  = (y + bh/2 - 30) + 'px';
+    teleRing.classList.remove('pop');
+    void teleRing.offsetWidth;
+    teleRing.classList.add('pop');
+  }
+
+  function showTip(x, y) {
+    const text = funnyTips[dodgeCount % funnyTips.length];
+    tip.textContent = text;
+    // posiciona acima do botão
+    const bh = btn.offsetHeight || 44;
+    const clamped = clampPos(x, y - 44);
+    tip.style.left = clamped.x + 'px';
+    tip.style.top  = clamped.y + 'px';
+    tip.classList.add('visible');
+    clearTimeout(tip._t);
+    tip._t = setTimeout(() => tip.classList.remove('visible'), 1200);
+  }
+
+  function moveTo(x, y, transition) {
+    const clamped = clampPos(x, y);
+    currentX = clamped.x;
+    currentY = clamped.y;
+    btn.style.transition = transition || 'left 0.2s ease, top 0.2s ease';
+    btn.style.left = currentX + 'px';
+    btn.style.top  = currentY + 'px';
+    return clamped;
+  }
+
+  function dodge() {
+    if (isAnimating) return;
+    isAnimating = true;
+    dodgeCount++;
+
+    const { x, y } = safePos();
+    const strategy = dodgeCount % 5;
+
+    if (strategy === 0) {
+      // Olé
+      showOle();
+      const pos = moveTo(x, y, 'left 0.18s cubic-bezier(0.25,0.46,0.45,0.94), top 0.18s ease');
+      showTip(pos.x, pos.y);
+      setTimeout(() => { isAnimating = false; }, 250);
+
+    } else if (strategy === 1) {
+      // Teletransporte
+      showTeleRing(currentX, currentY);
+      btn.style.transition = 'opacity 0.18s, transform 0.18s';
+      btn.style.opacity = '0';
+      btn.style.transform = 'scale(0.1)';
+      setTimeout(() => {
+        btn.style.transition = 'none';
+        const pos = moveTo(x, y, 'none');
+        void btn.offsetWidth;
+        btn.style.transition = 'opacity 0.22s, transform 0.22s';
+        btn.style.opacity = '1';
+        btn.style.transform = 'scale(1.15)';
+        showTeleRing(pos.x, pos.y);
+        showTip(pos.x, pos.y);
+        setTimeout(() => { btn.style.transform = 'scale(1)'; isAnimating = false; }, 280);
+      }, 200);
+
+    } else if (strategy === 2) {
+      // Spin zoom
+      btn.style.transition = 'transform 0.22s cubic-bezier(0.68,-0.55,0.27,1.55)';
+      btn.style.transform = 'rotate(360deg) scale(1.2)';
+      setTimeout(() => {
+        const pos = moveTo(x, y, 'left 0.15s ease, top 0.15s ease');
+        btn.style.transform = 'rotate(0deg) scale(1)';
+        showTip(pos.x, pos.y);
+        isAnimating = false;
+      }, 230);
+
+    } else if (strategy === 3) {
+      // Shake & run
+      let shakes = 0;
+      btn.style.transition = 'none';
+      const iv = setInterval(() => {
+        btn.style.transform = `translateX(${shakes % 2 === 0 ? -6 : 6}px)`;
+        shakes++;
+        if (shakes > 5) {
+          clearInterval(iv);
+          btn.style.transform = '';
+          const pos = moveTo(x, y, 'left 0.18s ease, top 0.18s ease');
+          showTip(pos.x, pos.y);
+          isAnimating = false;
+        }
+      }, 40);
+
+    } else {
+      // Dash
+      if (dodgeCount % 3 === 0) showOle();
+      const pos = moveTo(x, y, 'left 0.15s ease-out, top 0.15s ease-out');
+      showTip(pos.x, pos.y);
+      setTimeout(() => { isAnimating = false; }, 200);
+    }
+  }
+
+  // Desktop: mouseenter
+  btn.addEventListener('mouseenter', dodge);
+
+  // Mobile: touchstart no botão
+  btn.addEventListener('touchstart', function(e) {
+    e.preventDefault();
+    dodge();
+  }, { passive: false });
+
+  // Mobile: dedo se aproxima
+  document.addEventListener('touchmove', function(e) {
+    const t = e.touches[0];
+    const bRect = btn.getBoundingClientRect();
+    const cx = bRect.left + bRect.width / 2;
+    const cy = bRect.top  + bRect.height / 2;
+    if (Math.hypot(t.clientX - cx, t.clientY - cy) < 70) dodge();
+  }, { passive: true });
+
+  // Reposicionar se janela redimensionar
+  window.addEventListener('resize', () => {
+    const clamped = clampPos(currentX, currentY);
+    btn.style.transition = 'none';
+    btn.style.left = clamped.x + 'px';
+    btn.style.top  = clamped.y + 'px';
+    currentX = clamped.x;
+    currentY = clamped.y;
+  });
+
+  // Posição inicial após DOM carregar
+  window.addEventListener('load', setInitialPos);
+  // Fallback se load já passou
+  if (document.readyState === 'complete') setInitialPos();
+
+  // Sucesso
+  function showSuccess() {
+    document.getElementById('question-view').style.display = 'none';
+    document.getElementById('success-view').classList.add('active');
+    btn.style.display = 'none';
+    tip.style.display = 'none';
+    for (let i = 0; i < 18; i++) {
+      const burst = document.createElement('div');
+      burst.style.cssText = `position:fixed;left:${20+Math.random()*60}%;top:${10+Math.random()*40}%;font-size:${20+Math.random()*24}px;pointer-events:none;z-index:99999;animation:popIn 0.6s ${Math.random()*0.4}s both,fadeOut 0.5s ${0.8+Math.random()*0.4}s forwards;`;
+      burst.textContent = ['🎉','✨','🎊','💃','🕺','🔥','🌟'][Math.floor(Math.random()*7)];
+      document.body.appendChild(burst);
+      setTimeout(() => burst.remove(), 1500);
+    }
+  }
+
+  document.getElementById('btn-sim').addEventListener('click', showSuccess);
+
+  // Expõe pra onclick inline caso necessário
+  window.showSuccess = showSuccess;
+</script>
+
+<style>
+  @keyframes fadeOut { to { opacity: 0; transform: translateY(-30px); } }
+</style>
+</body>
+</html>
